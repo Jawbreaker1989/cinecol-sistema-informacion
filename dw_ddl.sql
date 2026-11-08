@@ -192,3 +192,5 @@ INSERT INTO dim_franja (sk_franja, franja, hora_inicio)
 VALUES (-1, 'No definido', '00:00');
 
 COMMIT;
+
+SELECT table_name FROM user_tables ORDER BY table_name;
