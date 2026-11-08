@@ -9,8 +9,12 @@ DECLARE
     TYPE t_ids IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
     v_salas              t_ids;
     v_peliculas          t_ids;
+    v_clientes           t_ids;
+    v_metodos_pago       t_ids;
     v_salas_count        PLS_INTEGER := 0;
     v_peliculas_count    PLS_INTEGER := 0;
+    v_clientes_count     PLS_INTEGER := 0;
+    v_metodos_count      PLS_INTEGER := 0;
     v_id_sala            sala.id_sala%TYPE;
     v_id_asiento         asiento.id_asiento%TYPE;
     v_id_empleado        empleado.id_empleado%TYPE;
@@ -161,6 +165,28 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20042, 'No hay peliculas disponibles para generar volumen.');
     END IF;
 
+    SELECT id_cliente
+    BULK COLLECT INTO v_clientes
+    FROM cliente
+    ORDER BY id_cliente;
+
+    v_clientes_count := v_clientes.COUNT;
+
+    IF v_clientes_count = 0 THEN
+        RAISE_APPLICATION_ERROR(-20043, 'No hay clientes disponibles para generar volumen.');
+    END IF;
+
+    SELECT id_metodo_pago
+    BULK COLLECT INTO v_metodos_pago
+    FROM metodo_pago
+    ORDER BY id_metodo_pago;
+
+    v_metodos_count := v_metodos_pago.COUNT;
+
+    IF v_metodos_count = 0 THEN
+        RAISE_APPLICATION_ERROR(-20044, 'No hay metodos de pago disponibles para generar volumen.');
+    END IF;
+
     SELECT NVL(MAX(id_funcion), 0) + 1 INTO v_id_funcion FROM funcion;
     SELECT NVL(MAX(id_venta), 0) + 1 INTO v_id_venta FROM venta;
     SELECT NVL(MAX(id_boleto), 0) + 1 INTO v_id_boleto FROM boleto;
@@ -214,9 +240,9 @@ BEGIN
             v_id_venta,
             CAST(v_inicio_ts - NUMTODSINTERVAL(30, 'MINUTE') AS DATE),
             v_total,
-            MOD(i - 1, 60) + 1,
+            v_clientes(MOD(i - 1, v_clientes_count) + 1),
             v_id_empleado,
-            MOD(i - 1, 5) + 1,
+            v_metodos_pago(MOD(i - 1, v_metodos_count) + 1),
             v_id_sucursal
         );
 
