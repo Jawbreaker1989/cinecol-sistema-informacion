@@ -108,7 +108,7 @@ del periodo analizado y no necesita conservar versiones históricas.
 El diagrama generado en Oracle SQL Developer Data Modeler se incluye a
 continuación:
 
-![Diagrama del modelo estrella CineCol](./Diagrama_Modelo_Estrella.png)
+![Diagrama del modelo estrella CineCol](../Diagrama/Diagrama_Modelo_Estrella.png)
 
 El diagrama debe mostrar las dos tablas de hechos, las dimensiones, las
 llaves primarias, las llaves foráneas y las relaciones.
@@ -242,22 +242,22 @@ Estas consultas permiten responder las preguntas principales de CineCol:
 
 ### Archivos del OLTP
 
-- `cinecol_ddl.sql`
-- `cinecol_datos.sql`
-- `auditoria_oltp.sql`
-- `paso_2_estructura_oltp.sql`
-- `paso_3_correccion_datos.sql`
-- `paso_4_generar_volumen.sql`
-- `paso_4_corregir_edades.sql`
+- [`cinecol_ddl.sql`](../Oracle/cinecol_ddl.sql)
+- [`cinecol_datos.sql`](../Oracle/cinecol_datos.sql)
+- [`auditoria_oltp.sql`](../Oracle/auditoria_oltp.sql)
+- [`paso_2_estructura_oltp.sql`](../Oracle/paso_2_estructura_oltp.sql)
+- [`paso_3_correccion_datos.sql`](../Oracle/paso_3_correccion_datos.sql)
+- [`paso_4_generar_volumen.sql`](../Oracle/paso_4_generar_volumen.sql)
+- [`paso_4_corregir_edades.sql`](../Oracle/paso_4_corregir_edades.sql)
 
 ### Archivos del DW
 
-- `paso_5_crear_usuario_dw.sql`
-- `dw_ddl.sql`
-- `paso_6_separar_dim_sucursal.sql`
-- `etl_cinecol_dw.sql`
-- `validacion_dw.sql`
-- `consultas_dw.sql`
+- [`paso_5_crear_usuario_dw.sql`](../Oracle/paso_5_crear_usuario_dw.sql)
+- [`dw_ddl.sql`](../Oracle/dw_ddl.sql)
+- [`paso_6_separar_dim_sucursal.sql`](../Oracle/paso_6_separar_dim_sucursal.sql)
+- [`etl_cinecol_dw.sql`](../Oracle/etl_cinecol_dw.sql)
+- [`validacion_dw.sql`](../Oracle/validacion_dw.sql)
+- [`consultas_dw.sql`](../Oracle/consultas_dw.sql)
 
 ## 12. Conclusión
 

@@ -26,3 +26,8 @@ GRANT SELECT ON CINECOL_R.metodo_pago TO CINECOL_DW;
 GRANT SELECT ON CINECOL_R.venta TO CINECOL_DW;
 GRANT SELECT ON CINECOL_R.boleto TO CINECOL_DW;
 
+SELECT username, account_status FROM dba_users WHERE username = 'CINECOL_DW';
+
+-- Si el usuario ya existe, el DBA puede desbloquearlo con una contraseña
+-- ingresada de forma segura, sin guardarla en este repositorio:
+-- ALTER USER CINECOL_DW IDENTIFIED BY &DW_PASSWORD ACCOUNT UNLOCK;
