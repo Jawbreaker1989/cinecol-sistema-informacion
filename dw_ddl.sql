@@ -7,6 +7,7 @@
 CREATE SEQUENCE seq_dim_tiempo START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE seq_dim_pelicula START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE seq_dim_sala START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_dim_sucursal START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE seq_dim_cliente START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE seq_dim_empleado START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE seq_dim_metodo_pago START WITH 1 INCREMENT BY 1;
@@ -45,12 +46,18 @@ CREATE TABLE dim_sala (
     nombre_sala        VARCHAR2(50),
     capacidad          NUMBER,
     tipo_sala          VARCHAR2(20),
-    id_sucursal        NUMBER,
+    CONSTRAINT pk_dim_sala PRIMARY KEY (sk_sala),
+    CONSTRAINT uq_dim_sala_bk UNIQUE (id_sala)
+);
+
+CREATE TABLE dim_sucursal (
+    sk_sucursal        NUMBER        NOT NULL,
+    id_sucursal        NUMBER        NOT NULL,
     nombre_sucursal    VARCHAR2(100),
     ciudad             VARCHAR2(80),
     departamento       VARCHAR2(80),
-    CONSTRAINT pk_dim_sala PRIMARY KEY (sk_sala),
-    CONSTRAINT uq_dim_sala_bk UNIQUE (id_sala)
+    CONSTRAINT pk_dim_sucursal PRIMARY KEY (sk_sucursal),
+    CONSTRAINT uq_dim_sucursal_bk UNIQUE (id_sucursal)
 );
 
 CREATE TABLE dim_cliente (
@@ -103,6 +110,7 @@ CREATE TABLE fact_venta_boleto (
     sk_tiempo_venta    NUMBER        NOT NULL,
     sk_pelicula        NUMBER        NOT NULL,
     sk_sala            NUMBER        NOT NULL,
+    sk_sucursal        NUMBER        NOT NULL,
     sk_cliente         NUMBER        NOT NULL,
     sk_empleado        NUMBER        NOT NULL,
     sk_metodo_pago     NUMBER        NOT NULL,
@@ -120,6 +128,7 @@ CREATE TABLE fact_ocupacion_funcion (
     sk_tiempo          NUMBER        NOT NULL,
     sk_pelicula        NUMBER        NOT NULL,
     sk_sala            NUMBER        NOT NULL,
+    sk_sucursal        NUMBER        NOT NULL,
     sk_franja          NUMBER        NOT NULL,
     id_funcion         NUMBER        NOT NULL,
     capacidad          NUMBER        NOT NULL,
@@ -139,6 +148,8 @@ ALTER TABLE fact_venta_boleto ADD CONSTRAINT fk_fvb_pelicula
     FOREIGN KEY (sk_pelicula) REFERENCES dim_pelicula (sk_pelicula);
 ALTER TABLE fact_venta_boleto ADD CONSTRAINT fk_fvb_sala
     FOREIGN KEY (sk_sala) REFERENCES dim_sala (sk_sala);
+ALTER TABLE fact_venta_boleto ADD CONSTRAINT fk_fvb_sucursal
+    FOREIGN KEY (sk_sucursal) REFERENCES dim_sucursal (sk_sucursal);
 ALTER TABLE fact_venta_boleto ADD CONSTRAINT fk_fvb_cliente
     FOREIGN KEY (sk_cliente) REFERENCES dim_cliente (sk_cliente);
 ALTER TABLE fact_venta_boleto ADD CONSTRAINT fk_fvb_empleado
@@ -154,6 +165,8 @@ ALTER TABLE fact_ocupacion_funcion ADD CONSTRAINT fk_fof_pelicula
     FOREIGN KEY (sk_pelicula) REFERENCES dim_pelicula (sk_pelicula);
 ALTER TABLE fact_ocupacion_funcion ADD CONSTRAINT fk_fof_sala
     FOREIGN KEY (sk_sala) REFERENCES dim_sala (sk_sala);
+ALTER TABLE fact_ocupacion_funcion ADD CONSTRAINT fk_fof_sucursal
+    FOREIGN KEY (sk_sucursal) REFERENCES dim_sucursal (sk_sucursal);
 ALTER TABLE fact_ocupacion_funcion ADD CONSTRAINT fk_fof_franja
     FOREIGN KEY (sk_franja) REFERENCES dim_franja (sk_franja);
 
@@ -161,6 +174,7 @@ CREATE INDEX ix_fvb_tiempo_funcion ON fact_venta_boleto (sk_tiempo_funcion);
 CREATE INDEX ix_fvb_tiempo_venta ON fact_venta_boleto (sk_tiempo_venta);
 CREATE INDEX ix_fvb_pelicula ON fact_venta_boleto (sk_pelicula);
 CREATE INDEX ix_fvb_sala ON fact_venta_boleto (sk_sala);
+CREATE INDEX ix_fvb_sucursal ON fact_venta_boleto (sk_sucursal);
 CREATE INDEX ix_fvb_cliente ON fact_venta_boleto (sk_cliente);
 CREATE INDEX ix_fvb_empleado ON fact_venta_boleto (sk_empleado);
 CREATE INDEX ix_fvb_metodo ON fact_venta_boleto (sk_metodo_pago);
@@ -168,6 +182,7 @@ CREATE INDEX ix_fvb_franja ON fact_venta_boleto (sk_franja);
 CREATE INDEX ix_fof_tiempo ON fact_ocupacion_funcion (sk_tiempo);
 CREATE INDEX ix_fof_pelicula ON fact_ocupacion_funcion (sk_pelicula);
 CREATE INDEX ix_fof_sala ON fact_ocupacion_funcion (sk_sala);
+CREATE INDEX ix_fof_sucursal ON fact_ocupacion_funcion (sk_sucursal);
 CREATE INDEX ix_fof_franja ON fact_ocupacion_funcion (sk_franja);
 
 INSERT INTO dim_tiempo (
@@ -182,6 +197,9 @@ INSERT INTO dim_pelicula (sk_pelicula, id_pelicula, titulo)
 VALUES (-1, -1, 'No definido');
 INSERT INTO dim_sala (sk_sala, id_sala, nombre_sala, tipo_sala)
 VALUES (-1, -1, 'No definido', 'No definido');
+INSERT INTO dim_sucursal (
+    sk_sucursal, id_sucursal, nombre_sucursal, ciudad, departamento
+) VALUES (-1, -1, 'No definido', 'No definido', 'No definido');
 INSERT INTO dim_cliente (sk_cliente, id_cliente, nombre_cliente, rango_edad)
 VALUES (-1, -1, 'No definido', 'No definido');
 INSERT INTO dim_empleado (sk_empleado, id_empleado, nombre_empleado)

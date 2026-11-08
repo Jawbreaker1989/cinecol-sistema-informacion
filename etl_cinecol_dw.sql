@@ -64,28 +64,38 @@ MERGE INTO dim_sala d
 USING (
     SELECT sa.id_sala, sa.nombre_sala, sa.capacidad_asientos AS capacidad,
            CASE WHEN INSTR(UPPER(sa.nombre_sala), 'VIP') > 0
-                THEN 'VIP' ELSE 'Estandar' END AS tipo_sala,
-           su.id_sucursal, su.nombre_sucursal,
-           ci.nombre_ciudad AS ciudad, ci.departamento
+                THEN 'VIP' ELSE 'Estandar' END AS tipo_sala
     FROM CINECOL_R.sala sa
     JOIN CINECOL_R.sucursal su ON su.id_sucursal = sa.id_sucursal
-    JOIN CINECOL_R.ciudad ci ON ci.id_ciudad = su.id_ciudad
 ) x
 ON (d.id_sala = x.id_sala)
 WHEN MATCHED THEN UPDATE SET
     d.nombre_sala = x.nombre_sala,
     d.capacidad = x.capacidad,
-    d.tipo_sala = x.tipo_sala,
-    d.id_sucursal = x.id_sucursal,
+    d.tipo_sala = x.tipo_sala
+WHEN NOT MATCHED THEN INSERT (
+    sk_sala, id_sala, nombre_sala, capacidad, tipo_sala
+) VALUES (
+    seq_dim_sala.NEXTVAL, x.id_sala, x.nombre_sala, x.capacidad, x.tipo_sala
+);
+
+MERGE INTO dim_sucursal d
+USING (
+    SELECT su.id_sucursal, su.nombre_sucursal,
+           ci.nombre_ciudad AS ciudad, ci.departamento
+    FROM CINECOL_R.sucursal su
+    JOIN CINECOL_R.ciudad ci ON ci.id_ciudad = su.id_ciudad
+) x
+ON (d.id_sucursal = x.id_sucursal)
+WHEN MATCHED THEN UPDATE SET
     d.nombre_sucursal = x.nombre_sucursal,
     d.ciudad = x.ciudad,
     d.departamento = x.departamento
 WHEN NOT MATCHED THEN INSERT (
-    sk_sala, id_sala, nombre_sala, capacidad, tipo_sala,
-    id_sucursal, nombre_sucursal, ciudad, departamento
+    sk_sucursal, id_sucursal, nombre_sucursal, ciudad, departamento
 ) VALUES (
-    seq_dim_sala.NEXTVAL, x.id_sala, x.nombre_sala, x.capacidad,
-    x.tipo_sala, x.id_sucursal, x.nombre_sucursal, x.ciudad, x.departamento
+    seq_dim_sucursal.NEXTVAL, x.id_sucursal, x.nombre_sucursal,
+    x.ciudad, x.departamento
 );
 
 MERGE INTO dim_cliente d
@@ -193,6 +203,11 @@ WHERE NOT EXISTS (
     JOIN dim_cliente dc ON dc.id_cliente = v.id_cliente
     JOIN dim_empleado de ON de.id_empleado = v.id_empleado
     JOIN dim_metodo_pago dm ON dm.id_metodo_pago = v.id_metodo_pago
+    JOIN dim_sucursal dsu ON dsu.id_sucursal = (
+        SELECT sa.id_sucursal
+        FROM CINECOL_R.sala sa
+        WHERE sa.id_sala = f.id_sala
+    )
     JOIN dim_tiempo tf ON tf.fecha = TRUNC(f.fecha)
     JOIN dim_tiempo tv ON tv.fecha = TRUNC(v.fecha_venta)
     JOIN dim_franja df
@@ -202,13 +217,14 @@ WHERE NOT EXISTS (
 
 INSERT INTO fact_venta_boleto (
     sk_tiempo_funcion, sk_tiempo_venta, sk_pelicula, sk_sala,
-    sk_cliente, sk_empleado, sk_metodo_pago, sk_franja,
+    sk_sucursal, sk_cliente, sk_empleado, sk_metodo_pago, sk_franja,
     id_venta, id_funcion, id_boleto, precio, cantidad
 )
 SELECT NVL(tf.sk_tiempo, -1),
        NVL(tv.sk_tiempo, -1),
        NVL(dp.sk_pelicula, -1),
        NVL(ds.sk_sala, -1),
+       NVL(dsu.sk_sucursal, -1),
        NVL(dc.sk_cliente, -1),
        NVL(de.sk_empleado, -1),
        NVL(dm.sk_metodo_pago, -1),
@@ -225,6 +241,8 @@ LEFT JOIN dim_tiempo tf ON tf.fecha = TRUNC(f.fecha)
 LEFT JOIN dim_tiempo tv ON tv.fecha = TRUNC(v.fecha_venta)
 LEFT JOIN dim_pelicula dp ON dp.id_pelicula = f.id_pelicula
 LEFT JOIN dim_sala ds ON ds.id_sala = f.id_sala
+LEFT JOIN CINECOL_R.sala osa ON osa.id_sala = f.id_sala
+LEFT JOIN dim_sucursal dsu ON dsu.id_sucursal = osa.id_sucursal
 LEFT JOIN dim_cliente dc ON dc.id_cliente = v.id_cliente
 LEFT JOIN dim_empleado de ON de.id_empleado = v.id_empleado
 LEFT JOIN dim_metodo_pago dm ON dm.id_metodo_pago = v.id_metodo_pago
@@ -232,12 +250,13 @@ LEFT JOIN dim_franja df ON df.hora_inicio = SUBSTR(f.hora_inicio, 1, 2) || ':00'
 
 INSERT INTO fact_ocupacion_funcion (
     sk_tiempo, sk_pelicula, sk_sala, sk_franja,
-    id_funcion, capacidad, boletos_vendidos, ingresos
+    sk_sucursal, id_funcion, capacidad, boletos_vendidos, ingresos
 )
 SELECT NVL(dt.sk_tiempo, -1),
        NVL(dp.sk_pelicula, -1),
        NVL(ds.sk_sala, -1),
        NVL(df.sk_franja, -1),
+       NVL(dsu.sk_sucursal, -1),
        f.id_funcion,
        NVL(ds.capacidad, 0),
        COUNT(b.id_boleto),
@@ -246,9 +265,12 @@ FROM CINECOL_R.funcion f
 LEFT JOIN dim_tiempo dt ON dt.fecha = TRUNC(f.fecha)
 LEFT JOIN dim_pelicula dp ON dp.id_pelicula = f.id_pelicula
 LEFT JOIN dim_sala ds ON ds.id_sala = f.id_sala
+LEFT JOIN CINECOL_R.sala osa ON osa.id_sala = f.id_sala
+LEFT JOIN dim_sucursal dsu ON dsu.id_sucursal = osa.id_sucursal
 LEFT JOIN dim_franja df ON df.hora_inicio = SUBSTR(f.hora_inicio, 1, 2) || ':00'
 LEFT JOIN CINECOL_R.boleto b ON b.id_funcion = f.id_funcion
 GROUP BY dt.sk_tiempo, dp.sk_pelicula, ds.sk_sala, df.sk_franja,
+         dsu.sk_sucursal,
          f.id_funcion, NVL(ds.capacidad, 0);
 
 COMMIT;

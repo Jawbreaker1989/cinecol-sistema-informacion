@@ -13,6 +13,11 @@ SELECT
     (SELECT COUNT(*) FROM fact_ocupacion_funcion) AS funciones_dw
 FROM dual;
 
+-- 1b. Conteo de la nueva dimension de sucursal.
+SELECT COUNT(*) AS sucursales_dw
+FROM dim_sucursal
+WHERE id_sucursal <> -1;
+
 -- 2. Sumas de precios y totales de venta.
 SELECT
     (SELECT NVL(SUM(precio), 0) FROM CINECOL_R.boleto) AS ingresos_boletos_oltp,
@@ -39,6 +44,7 @@ WHERE sk_tiempo_funcion = -1
    OR sk_tiempo_venta = -1
    OR sk_pelicula = -1
    OR sk_sala = -1
+   OR sk_sucursal = -1
    OR sk_cliente = -1
    OR sk_empleado = -1
    OR sk_metodo_pago = -1
@@ -79,6 +85,12 @@ SELECT id_metodo_pago, COUNT(*) AS cantidad
 FROM dim_metodo_pago
 WHERE id_metodo_pago <> -1
 GROUP BY id_metodo_pago
+HAVING COUNT(*) > 1;
+
+SELECT id_sucursal, COUNT(*) AS cantidad
+FROM dim_sucursal
+WHERE id_sucursal <> -1
+GROUP BY id_sucursal
 HAVING COUNT(*) > 1;
 
 -- 7. Evidencia punta a punta para tres boletos.

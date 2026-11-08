@@ -4,14 +4,14 @@
 -- ============================================
 
 -- 1. Ingresos por sucursal y mes.
-SELECT ds.nombre_sucursal,
+SELECT dsu.nombre_sucursal,
        tf.anio,
        tf.mes,
        SUM(f.precio) AS ingresos
 FROM fact_venta_boleto f
-JOIN dim_sala ds ON ds.sk_sala = f.sk_sala
+JOIN dim_sucursal dsu ON dsu.sk_sucursal = f.sk_sucursal
 JOIN dim_tiempo tf ON tf.sk_tiempo = f.sk_tiempo_funcion
-GROUP BY ds.nombre_sucursal, tf.anio, tf.mes
+GROUP BY dsu.nombre_sucursal, tf.anio, tf.mes
 ORDER BY tf.anio, tf.mes, ingresos DESC;
 
 -- 2. Top 5 peliculas por boletos dentro de cada genero.
@@ -87,32 +87,33 @@ FROM mensual
 ORDER BY anio, mes;
 
 -- 7. Ingresos acumulados por sucursal y fecha.
-SELECT ds.nombre_sucursal,
+SELECT dsu.nombre_sucursal,
        tf.fecha,
        SUM(f.precio) AS ingresos_dia,
        SUM(SUM(f.precio)) OVER (
-           PARTITION BY ds.nombre_sucursal
+           PARTITION BY dsu.nombre_sucursal
            ORDER BY tf.fecha
            ROWS UNBOUNDED PRECEDING
        ) AS ingresos_acumulados
 FROM fact_venta_boleto f
-JOIN dim_sala ds ON ds.sk_sala = f.sk_sala
+JOIN dim_sucursal dsu ON dsu.sk_sucursal = f.sk_sucursal
 JOIN dim_tiempo tf ON tf.sk_tiempo = f.sk_tiempo_funcion
-GROUP BY ds.nombre_sucursal, tf.fecha
-ORDER BY ds.nombre_sucursal, tf.fecha;
+GROUP BY dsu.nombre_sucursal, tf.fecha
+ORDER BY dsu.nombre_sucursal, tf.fecha;
 
 -- 8. Subtotales por departamento, ciudad y sucursal.
-SELECT ds.departamento,
-       ds.ciudad,
-       ds.nombre_sucursal,
-       GROUPING(ds.departamento) AS grp_departamento,
-       GROUPING(ds.ciudad) AS grp_ciudad,
-       GROUPING(ds.nombre_sucursal) AS grp_sucursal,
+SELECT dsu.departamento,
+       dsu.ciudad,
+       dsu.nombre_sucursal,
+       GROUPING(dsu.departamento) AS grp_departamento,
+       GROUPING(dsu.ciudad) AS grp_ciudad,
+       GROUPING(dsu.nombre_sucursal) AS grp_sucursal,
        SUM(f.precio) AS ingresos
 FROM fact_venta_boleto f
 JOIN dim_sala ds ON ds.sk_sala = f.sk_sala
-GROUP BY ROLLUP(ds.departamento, ds.ciudad, ds.nombre_sucursal)
-ORDER BY ds.departamento, ds.ciudad, ds.nombre_sucursal;
+JOIN dim_sucursal dsu ON dsu.sk_sucursal = f.sk_sucursal
+GROUP BY ROLLUP(dsu.departamento, dsu.ciudad, dsu.nombre_sucursal)
+ORDER BY dsu.departamento, dsu.ciudad, dsu.nombre_sucursal;
 
 -- 9. Perfil de publico: rango de edad por genero.
 SELECT dc.rango_edad,
@@ -126,14 +127,15 @@ ORDER BY dc.rango_edad, dp.genero;
 
 -- 10. Top empleados por ventas y ticket promedio por sucursal.
 WITH resumen AS (
-    SELECT de.nombre_sucursal,
+    SELECT dsu.nombre_sucursal,
            de.nombre_empleado,
            COUNT(DISTINCT f.id_venta) AS ventas,
            ROUND(SUM(f.precio) / COUNT(DISTINCT f.id_venta), 2)
              AS ticket_promedio
     FROM fact_venta_boleto f
     JOIN dim_empleado de ON de.sk_empleado = f.sk_empleado
-    GROUP BY de.nombre_sucursal, de.nombre_empleado
+    JOIN dim_sucursal dsu ON dsu.sk_sucursal = f.sk_sucursal
+    GROUP BY dsu.nombre_sucursal, de.nombre_empleado
 )
 SELECT nombre_sucursal,
        nombre_empleado,
@@ -184,7 +186,7 @@ ORDER BY f.id_funcion;
 EXPLAIN PLAN FOR
 SELECT ds.nombre_sucursal, tf.anio, tf.mes, SUM(f.precio) AS ingresos
 FROM fact_venta_boleto f
-JOIN dim_sala ds ON ds.sk_sala = f.sk_sala
+JOIN dim_sucursal ds ON ds.sk_sucursal = f.sk_sucursal
 JOIN dim_tiempo tf ON tf.sk_tiempo = f.sk_tiempo_funcion
 GROUP BY ds.nombre_sucursal, tf.anio, tf.mes;
 

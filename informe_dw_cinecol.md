@@ -51,8 +51,10 @@ La reauditoría posterior devolvió cero filas en todos los controles.
 ## 4. Diseño dimensional
 
 Se eligió un esquema estrella puro con dimensiones desnormalizadas y llaves
-sustitutas. Todas las dimensiones aplican SCD tipo 1 porque el alcance es una
-foto del periodo académico y no requiere conservar historial de cambios.
+sustitutas. `DIM_SUCURSAL` se mantiene separada de `DIM_SALA`: la sucursal
+contiene nombre, ciudad y departamento, mientras la sala contiene capacidad,
+nombre y tipo. Todas las dimensiones aplican SCD tipo 1 porque el alcance es
+una foto del periodo académico y no requiere conservar historial de cambios.
 
 ```mermaid
 erDiagram
@@ -60,6 +62,7 @@ erDiagram
     FACT_VENTA_BOLETO }o--|| DIM_TIEMPO : "venta"
     FACT_VENTA_BOLETO }o--|| DIM_PELICULA : contiene
     FACT_VENTA_BOLETO }o--|| DIM_SALA : ocurre_en
+    FACT_VENTA_BOLETO }o--|| DIM_SUCURSAL : pertenece
     FACT_VENTA_BOLETO }o--|| DIM_CLIENTE : compra
     FACT_VENTA_BOLETO }o--|| DIM_EMPLEADO : procesa
     FACT_VENTA_BOLETO }o--|| DIM_METODO_PAGO : usa
@@ -67,6 +70,7 @@ erDiagram
     FACT_OCUPACION_FUNCION }o--|| DIM_TIEMPO : fecha
     FACT_OCUPACION_FUNCION }o--|| DIM_PELICULA : proyecta
     FACT_OCUPACION_FUNCION }o--|| DIM_SALA : sala
+    FACT_OCUPACION_FUNCION }o--|| DIM_SUCURSAL : pertenece
     FACT_OCUPACION_FUNCION }o--|| DIM_FRANJA : franja
 ```
 
@@ -78,7 +82,7 @@ Cada dimensión tiene una fila `No definido` con `SK = -1`. Las facts tienen
 La carga se ejecutó en este orden:
 
 1. `DIM_TIEMPO`.
-2. Dimensiones de película, sala, cliente, empleado, método de pago y franja.
+2. Dimensiones de película, sala, sucursal, cliente, empleado, método de pago y franja.
 3. `FACT_VENTA_BOLETO`.
 4. `FACT_OCUPACION_FUNCION`.
 
@@ -93,6 +97,7 @@ Resultado de la carga:
 | `DIM_TIEMPO` | 184 |
 | `DIM_PELICULA` | 15 |
 | `DIM_SALA` | 30 |
+| `DIM_SUCURSAL` | 19 |
 | `DIM_CLIENTE` | 30 |
 | `DIM_EMPLEADO` | 39 |
 | `DIM_METODO_PAGO` | 6 |
@@ -122,7 +127,8 @@ La validación OLTP contra DW confirmó:
 | Duplicados en business keys | 0 |
 
 La trazabilidad de tres boletos confirmó el recorrido desde la fact hasta las
-dimensiones de tiempo, película, sala, cliente, empleado, método y franja.
+dimensiones de tiempo, película, sala, sucursal, cliente, empleado, método y
+franja.
 
 ## 7. Consultas analíticas
 
@@ -164,6 +170,7 @@ con una distribución equilibrada entre los 7 géneros.
 - [paso_4_generar_volumen.sql](./paso_4_generar_volumen.sql)
 - [paso_5_crear_usuario_dw.sql](./paso_5_crear_usuario_dw.sql)
 - [dw_ddl.sql](./dw_ddl.sql)
+- [paso_6_separar_dim_sucursal.sql](./paso_6_separar_dim_sucursal.sql)
 - [etl_cinecol_dw.sql](./etl_cinecol_dw.sql)
 - [validacion_dw.sql](./validacion_dw.sql)
 - [consultas_dw.sql](./consultas_dw.sql)
