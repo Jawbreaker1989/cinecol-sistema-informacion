@@ -34,8 +34,17 @@ El generador produjo:
 | Sucursales con ventas | 19 |
 | Clientes con compras | 30 |
 
-La base de origen disponible contiene 30 clientes; por ello no se alcanzó la
-meta opcional de 60 clientes.
+El archivo de carga [cinecol_datos.sql](./cinecol_datos.sql) contiene 60
+inserciones de clientes, con IDs del 1 al 60. Sin embargo, la instancia Oracle
+utilizada durante la generación tenía 30 clientes disponibles y por eso el
+resultado fue de 30 clientes con compras. El generador usa las claves de
+clientes existentes en la instancia; para obtener compras de los 60 clientes
+se debe cargar primero el conjunto completo de clientes y repetir la generación
+o ejecutar una ampliación específica de ventas.
+
+La fuente también contiene 60 películas, pero en la instancia usada para esta
+ejecución solo quedaron 15 películas cargadas y programadas. Por tanto, la
+meta de al menos 30 películas con funciones no se cumplió.
 
 La reauditoría posterior devolvió cero filas en todos los controles.
 
@@ -136,6 +145,16 @@ sentencias `EXPLAIN PLAN`.
 
 El fragmento ejecutado de la consulta 7 mostró acumulados progresivos por
 sucursal y fecha, confirmando el funcionamiento de la ventana analítica.
+
+### Limitación de cobertura cinematográfica
+
+La consulta 2 es técnicamente correcta, pero su valor analítico está limitado
+por la cobertura actual: solo hay 15 películas distribuidas entre 7 géneros,
+aproximadamente dos películas por género. En consecuencia, un `Top 5` por
+género no puede producir cinco candidatos en la mayoría de los géneros y el
+ranking pierde poder discriminatorio. Para que esta pregunta sea
+representativa se deben cargar y programar al menos 30 películas, idealmente
+con una distribución equilibrada entre los 7 géneros.
 
 ## 8. Scripts entregados
 
