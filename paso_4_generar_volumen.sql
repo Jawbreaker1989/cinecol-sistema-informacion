@@ -8,7 +8,9 @@
 DECLARE
     TYPE t_ids IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
     v_salas              t_ids;
+    v_peliculas          t_ids;
     v_salas_count        PLS_INTEGER := 0;
+    v_peliculas_count    PLS_INTEGER := 0;
     v_id_sala            sala.id_sala%TYPE;
     v_id_asiento         asiento.id_asiento%TYPE;
     v_id_empleado        empleado.id_empleado%TYPE;
@@ -148,6 +150,17 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20041, 'No hay salas disponibles para generar volumen.');
     END IF;
 
+    SELECT id_pelicula
+    BULK COLLECT INTO v_peliculas
+    FROM pelicula
+    ORDER BY id_pelicula;
+
+    v_peliculas_count := v_peliculas.COUNT;
+
+    IF v_peliculas_count = 0 THEN
+        RAISE_APPLICATION_ERROR(-20042, 'No hay peliculas disponibles para generar volumen.');
+    END IF;
+
     SELECT NVL(MAX(id_funcion), 0) + 1 INTO v_id_funcion FROM funcion;
     SELECT NVL(MAX(id_venta), 0) + 1 INTO v_id_venta FROM venta;
     SELECT NVL(MAX(id_boleto), 0) + 1 INTO v_id_boleto FROM boleto;
@@ -177,7 +190,7 @@ BEGIN
             TO_CHAR(v_fin_ts, 'HH24:MI'),
             v_inicio_ts,
             v_fin_ts,
-            MOD(i - 1, 30) + 1,
+            v_peliculas(MOD(i - 1, v_peliculas_count) + 1),
             v_id_sala
         );
 
