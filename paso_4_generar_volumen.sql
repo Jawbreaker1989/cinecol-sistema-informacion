@@ -28,7 +28,7 @@ DECLARE
     v_numero_asiento     PLS_INTEGER;
 BEGIN
     -- Algunas cargas iniciales solo crean sucursales 1 a 8.
-    -- Completa las sucursales 9 a 19 usando las ciudades 9 a 19.
+    -- Completa las sucursales 9 a 19 usando ciudades ya cargadas.
     FOR n IN 9..19 LOOP
         BEGIN
             SELECT id_sucursal
@@ -37,10 +37,10 @@ BEGIN
             WHERE id_sucursal = n;
         EXCEPTION
             WHEN NO_DATA_FOUND THEN
-                SELECT id_ciudad
+                SELECT MIN(id_ciudad)
                 INTO v_id_ciudad
                 FROM ciudad
-                WHERE id_ciudad = n;
+                HAVING COUNT(*) > 0;
 
                 INSERT INTO sucursal (
                     id_sucursal, nombre_sucursal, direccion,
