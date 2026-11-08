@@ -1,3 +1,21 @@
+# Sistema de Información y Gestión Transaccional de CineCol
+
+**Rafael Esteban Lozano Vargas**
+**Cesar Ricardo Caro Sanchez**
+
+{rafael.lozano05, cesar.caro}@uptc.edu.co
+
+**Escuela de Ingeniería de Sistemas y Computación**
+**Universidad Pedagógica y Tecnológica de Colombia (UPTC)**
+**Facultad Seccional Sogamoso**
+
+**2026**
+
+**Asignatura:** Bases de Datos II (Grupo 60)
+**Docente:** Ing. Mónica Katherine Durán Vaca
+
+---
+
 # Etapa 2: Carga y explotación analítica del Data Warehouse CineCol
 
 ## 1. Introducción
