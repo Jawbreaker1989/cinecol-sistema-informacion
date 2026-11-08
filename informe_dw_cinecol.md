@@ -87,10 +87,10 @@ del periodo analizado y no necesita conservar versiones históricas.
 
 ## 5. Diagrama del modelo estrella
 
-Aquí se debe insertar el diagrama generado en Oracle SQL Developer Data
-Modeler:
+El diagrama generado en Oracle SQL Developer Data Modeler se incluye a
+continuación:
 
-**[Insertar aquí `Diagrama_Modelo_Estrella.pdf` o la imagen exportada]**
+![Diagrama del modelo estrella CineCol](./Diagrama_Modelo_Estrella.png)
 
 El diagrama debe mostrar las dos tablas de hechos, las dimensiones, las
 llaves primarias, las llaves foráneas y las relaciones.
