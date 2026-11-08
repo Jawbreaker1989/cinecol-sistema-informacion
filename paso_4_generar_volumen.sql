@@ -22,6 +22,8 @@ DECLARE
     v_id_venta            venta.id_venta%TYPE;
     v_id_boleto           boleto.id_boleto%TYPE;
     v_id_ciudad           sucursal.id_ciudad%TYPE;
+    v_id_pelicula         pelicula.id_pelicula%TYPE;
+    v_id_cliente          cliente.id_cliente%TYPE;
     v_id_sucursal         sala.id_sucursal%TYPE;
     v_nombre_sala        sala.nombre_sala%TYPE;
     v_fecha_funcion      DATE;
@@ -220,6 +222,11 @@ BEGIN
             v_id_sala
         );
 
+        SELECT f.id_pelicula
+        INTO v_id_pelicula
+        FROM funcion f
+        WHERE f.id_funcion = v_id_funcion;
+
         SELECT MIN(id_empleado)
         INTO v_id_empleado
         FROM empleado
@@ -233,6 +240,22 @@ BEGIN
                     END;
         v_total := v_precio * 5;
 
+        SELECT MIN(c.id_cliente)
+        INTO v_id_cliente
+        FROM cliente c
+        CROSS JOIN pelicula p
+        JOIN clasificacion cl ON cl.id_clasificacion = p.id_clasificacion
+        WHERE p.id_pelicula = v_id_pelicula
+          AND TRUNC(MONTHS_BETWEEN(v_fecha_funcion, c.fecha_nacimiento) / 12)
+              >= cl.edad_minima;
+
+        IF v_id_cliente IS NULL THEN
+            RAISE_APPLICATION_ERROR(
+                -20045,
+                'No hay cliente con edad compatible para la pelicula ' || v_id_pelicula
+            );
+        END IF;
+
         INSERT INTO venta (
             id_venta, fecha_venta, total, id_cliente,
             id_empleado, id_metodo_pago, id_sucursal
@@ -240,7 +263,7 @@ BEGIN
             v_id_venta,
             CAST(v_inicio_ts - NUMTODSINTERVAL(30, 'MINUTE') AS DATE),
             v_total,
-            v_clientes(MOD(i - 1, v_clientes_count) + 1),
+            v_id_cliente,
             v_id_empleado,
             v_metodos_pago(MOD(i - 1, v_metodos_count) + 1),
             v_id_sucursal
