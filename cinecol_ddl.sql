@@ -29,7 +29,8 @@ CREATE TABLE asiento (
   fila        VARCHAR2(5)  NOT NULL,
   numero      NUMBER       NOT NULL,
   id_sala     NUMBER       NOT NULL,
-  CONSTRAINT pk_asiento PRIMARY KEY (id_asiento)
+  CONSTRAINT pk_asiento PRIMARY KEY (id_asiento),
+  CONSTRAINT uq_asiento_sala_fila_numero UNIQUE (id_sala, fila, numero)
 );
 
 CREATE TABLE empleado (
@@ -46,7 +47,8 @@ CREATE TABLE cliente (
   documento         VARCHAR2(20)  NOT NULL,
   celular           VARCHAR2(20),
   fecha_nacimiento  DATE          NOT NULL,
-  CONSTRAINT pk_cliente PRIMARY KEY (id_cliente)
+  CONSTRAINT pk_cliente PRIMARY KEY (id_cliente),
+  CONSTRAINT uq_cliente_documento UNIQUE (documento)
 );
 
 CREATE TABLE genero (
@@ -79,6 +81,8 @@ CREATE TABLE funcion (
   fecha        DATE         NOT NULL,
   hora_inicio  VARCHAR2(5)  NOT NULL,
   hora_fin     VARCHAR2(5)  NOT NULL,
+  inicio_ts    TIMESTAMP,
+  fin_ts       TIMESTAMP,
   id_pelicula  NUMBER       NOT NULL,
   id_sala      NUMBER       NOT NULL,
   CONSTRAINT pk_funcion PRIMARY KEY (id_funcion)
@@ -109,7 +113,8 @@ CREATE TABLE boleto (
   id_venta        NUMBER         NOT NULL,
   id_funcion      NUMBER         NOT NULL,
   id_asiento      NUMBER         NOT NULL,
-  CONSTRAINT pk_boleto PRIMARY KEY (id_boleto)
+  CONSTRAINT pk_boleto PRIMARY KEY (id_boleto),
+  CONSTRAINT uq_boleto_funcion_asiento UNIQUE (id_funcion, id_asiento)
 );
 
 -- Llaves foraneas (el nombre sera el de la relacion en el MER)
